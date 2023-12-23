@@ -8,7 +8,7 @@ usebar = False
 progress = None
 progress = Progress()
 import threading
-from counter import Counter
+from gui.counter import Counter
 class Node:
     pos = 0,0
     bkptr = None

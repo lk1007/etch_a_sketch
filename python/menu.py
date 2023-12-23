@@ -15,17 +15,18 @@ try:
   screen = pygame.display.set_mode((320, 240))
   #pygame.mouse.set_visible(False)
   from pygame.locals import *   # for event MOUSE variables 
-  import button
-  import menus
+  import gui.button as button
+  import gui.menus as menus
   import git
   import time
   import threading
+  print("stuff")
   if(ON_PI):
     import RPi.GPIO as GPIO
     GPIO.setmode(GPIO.BCM)
-    import sketch_motors
+    import motor_API.sketch_motors
   else:
-    import mock_sketch_motors as sketch_motors
+    import motor_API.mock_sketch_motors as sketch_motors
     print("Motors loaded!")
   WHITE = 255, 255, 255
   BLUE = 0,0,255
@@ -101,9 +102,8 @@ try:
     while(not stop_motors):
       if (not controller.stop):
         controller.output()
-  if (ON_PI):
-    motor_driver = threading.Thread(target=driver) #drives motors in the background
-    motor_driver.start()
+  motor_driver = threading.Thread(target=driver) #drives motors in the background
+  motor_driver.start()
   back = button.Button((270,10), (40,40), "Back", menu.back, None, my_font)
   norteño = button.PolygonButton((90,10), (60,90), [(30,0), (0,20),(30,90),(60,20)], controller.reg, [controller.NORTH])
   sureño = button.PolygonButton((90,140), (60,90), [(30,0), (0,70), (30,90), (60,70)], controller.reg, [controller.SOUTH])

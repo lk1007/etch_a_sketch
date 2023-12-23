@@ -3,9 +3,9 @@ import numpy
 import sys
 ON_PI = not "-p" in sys.argv
 if ON_PI:
-    from sketch_motors import sketch_motors
+    from motor_API.sketch_motors import sketch_motors
 else:
-    from mock_sketch_motors import sketch_motors
+    from motor_API.mock_sketch_motors import sketch_motors
 
 class Drawer:
     
