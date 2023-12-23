@@ -20,12 +20,12 @@ try:
   import git
   import time
   import threading
-  
   if(ON_PI):
     import RPi.GPIO as GPIO
     GPIO.setmode(GPIO.BCM)
     import sketch_motors
-    import motor
+  else:
+    import mock_sketch_motors as sketch_motors
     print("Motors loaded!")
   WHITE = 255, 255, 255
   BLUE = 0,0,255

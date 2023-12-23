@@ -1,4 +1,4 @@
-import image_to_drawing as img
+import preprocessing.image_to_drawing as img
 from rich.progress import Progress
 black = 20
 import math

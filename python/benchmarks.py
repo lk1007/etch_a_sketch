@@ -1,8 +1,12 @@
-import motor
 import time
-from  sketch_motors import sketch_motors
-import RPi.GPIO as GPIO
-GPIO.setmode(GPIO.BCM)
+ON_PI = not "-p" in sys.argv
+if(ON_PI):
+  import RPi.GPIO as GPIO
+  GPIO.setmode(GPIO.BCM)
+  from  sketch_motors import sketch_motors
+else:
+  from  mock_sketch_motors import sketch_motors
+
 sketch_motors = sketch_motors(motor.X_PINS,motor.Y_PINS,motor.TYPICAL_SPEED,motor.TYPICAL_STEPS)
 length = 100
 def draw_square():

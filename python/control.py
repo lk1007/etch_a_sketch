@@ -1,4 +1,9 @@
-import RPi.GPIO as GPIO
+
+import sys
+ON_PI = not "-p" in sys.argv
+
+if(ON_PI):
+  import RPi.GPIO as GPIO
 from time import sleep
 import sys
 
