@@ -1,10 +1,10 @@
 from collections import deque
-import path
 import os
-import simulator
+import path
+import gui.simulator as simulator
+import gui.button as button
+import gui.draw as draw
 import threading
-import button
-import draw
 import pygame
 import time
 class Menu:

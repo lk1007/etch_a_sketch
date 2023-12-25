@@ -1,17 +1,18 @@
-ON_PI = True
 from numpy import genfromtxt
 import numpy 
+import sys
+ON_PI = not "-p" in sys.argv
 if ON_PI:
-    import motor
-    from sketch_motors import sketch_motors
+    from motor_API.sketch_motors import sketch_motors
+else:
+    from motor_API.mock_sketch_motors import sketch_motors
 
 class Drawer:
     
     # Auto mode takes a list off commands and draws with them, turning off allows you to use GPIO inputs to draw
     def __init__(self, file):
         self.file = file
-        if(ON_PI):
-            self.sketch_motors = sketch_motors(motor.X_PINS,motor.Y_PINS,motor.TYPICAL_SPEED,motor.TYPICAL_STEPS*2)
+        self.sketch_motors = sketch_motors(motor.X_PINS,motor.Y_PINS,motor.TYPICAL_SPEED,motor.TYPICAL_STEPS*2)
     def draw(self):
         my_data = genfromtxt(self.file, delimiter=",")
         my_data = numpy.array([my_data.T[1], my_data.T[0]]).T

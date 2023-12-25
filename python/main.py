@@ -4,7 +4,14 @@ print(ON_PI)
 print("Starting...")
 import pygame 
 import os
+from pygame.locals import *   # for event MOUSE variables 
+import gui.button as button
+import gui.menus as menus
+import git
+import time
+import threading
 
+WINDOW_DIM = (320,240)
 try:
   if(ON_PI):
     os.putenv('SDL_VIDEODRIVER', 'fbcon')   # Display on piTFT
@@ -12,22 +19,14 @@ try:
     os.putenv('SDL_MOUSEDRV', 'TSLIB')     # Track mouse clicks on piTFT 
     os.putenv('SDL_MOUSEDEV', '/dev/input/touchscreen')
   pygame.init()
-  screen = pygame.display.set_mode((320, 240))
-  #pygame.mouse.set_visible(False)
-  from pygame.locals import *   # for event MOUSE variables 
-  import gui.button as button
-  import gui.menus as menus
-  import git
-  import time
-  import threading
-  print("stuff")
+  screen = pygame.display.set_mode(WINDOW_DIM)
+
   if(ON_PI):
     import RPi.GPIO as GPIO
     GPIO.setmode(GPIO.BCM)
     import motor_API.sketch_motors
   else:
     import motor_API.mock_sketch_motors as sketch_motors
-    print("Motors loaded!")
   WHITE = 255, 255, 255
   BLUE = 0,0,255
   BLACK = 0,0,0
