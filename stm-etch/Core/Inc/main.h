@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2023 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.h
+ * @brief          : Header for main.c file.
+ *                   This file contains the common defines of the application.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2023 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -31,9 +31,9 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-extern I2C_HandleTypeDef hi2c1;
+  extern I2C_HandleTypeDef hi2c1;
 
-extern UART_HandleTypeDef huart1;
+  extern UART_HandleTypeDef huart1;
 
 /* USER CODE END Includes */
 
@@ -60,6 +60,18 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define motor_sleep_R_Pin GPIO_PIN_5
+#define motor_sleep_R_GPIO_Port GPIOA
+#define motor_dir_R_Pin GPIO_PIN_6
+#define motor_dir_R_GPIO_Port GPIOA
+#define motor_step_R_Pin GPIO_PIN_7
+#define motor_step_R_GPIO_Port GPIOA
+#define motor_step_L_Pin GPIO_PIN_0
+#define motor_step_L_GPIO_Port GPIOB
+#define motor_sleep_L_Pin GPIO_PIN_1
+#define motor_sleep_L_GPIO_Port GPIOB
+#define motor_dir_L_Pin GPIO_PIN_2
+#define motor_dir_L_GPIO_Port GPIOB
 #define GPO_Pin GPIO_PIN_5
 #define GPO_GPIO_Port GPIOB
 #define DIR_Pin GPIO_PIN_8

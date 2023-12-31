@@ -1,0 +1,1 @@
+motor wiring Top to bottom green, black, blue, red
