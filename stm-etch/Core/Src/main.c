@@ -23,9 +23,9 @@
 /* USER CODE BEGIN Includes */
 #include "encoder.h"
 #include "motor.h"
+#include "motor_encoder_pair.h"
 #include "stdio.h"
 /* USER CODE END Includes */
-
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
@@ -68,13 +68,13 @@ static void MX_I2C2_Init(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  encoder_t encoder_L = {.address = 0x36,.hi2c = &hi2c1};
+  encoder_t encoder_L = {.address = 0x36, .hi2c = &hi2c1};
   encoder_t encoder_R = {.address = 0x36, .hi2c = &hi2c2};
 
   motor_t motor_L = {
@@ -83,14 +83,18 @@ int main(void)
       .sleep_port = motor_sleep_L_GPIO_Port,
       .step_pin = motor_step_L_Pin,
       .dir_pin = motor_dir_L_Pin,
-      .sleep_pin = motor_sleep_L_Pin};
+      .sleep_pin = motor_sleep_L_Pin,
+      .positive_dir = CW};
   motor_t motor_R = {
       .step_port = motor_step_R_GPIO_Port,
       .dir_port = motor_dir_R_GPIO_Port,
       .sleep_port = motor_sleep_R_GPIO_Port,
       .step_pin = motor_step_R_Pin,
       .dir_pin = motor_dir_R_Pin,
-      .sleep_pin = motor_sleep_R_Pin};
+      .sleep_pin = motor_sleep_R_Pin,
+      .positive_dir = CCW};
+  motor_encoder_pair_t knob_L = {.motor = &motor_L, .encoder = &encoder_L};
+  motor_encoder_pair_t knob_R = {.motor = &motor_R, .encoder = &encoder_R};
 
   /* USER CODE END 1 */
 
@@ -116,11 +120,9 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
-  encoder_init(&encoder_L);
-  encoder_init(&encoder_R);
+  init_motor_encoder_pair(&knob_L);
+  init_motor_encoder_pair(&knob_R);
 
-  motor_init(&motor_L);
-  motor_init(&motor_R);
   int steps = 0;
   int dir = 1;
   /* USER CODE END 2 */
@@ -130,25 +132,24 @@ int main(void)
   while (1)
   {
 
-    if(steps > 200)
+    if (steps > 200)
       dir = 0;
-    else if(steps < 0)
+    else if (steps < 0)
       dir = 1;
     steps += (dir) ? 1 : -1;
-    step_motor(&motor_L,dir);
-    step_motor(&motor_R,dir);
+    step_motor(knob_L.motor, dir);
+    step_motor(knob_R.motor, dir);
     HAL_Delay(1);
 
-    update_angle(&encoder_L);
-    update_angle(&encoder_R);
+    update_angle(knob_L.encoder);
+    update_angle(knob_R.encoder);
 
-    uint16_t angle_L = get_curr_angle(&encoder_L);
-    uint16_t angle_R = get_curr_angle(&encoder_R);
+    uint16_t angle_L = get_curr_angle(knob_L.encoder);
+    uint16_t angle_R = get_curr_angle(knob_R.encoder);
 
     char str[20] = {0};
     int data_stored = sprintf(str, "Angle: %d %d\n", angle_L, angle_R);
     HAL_UART_Transmit(&huart1, (uint8_t *)str, data_stored + 1, HAL_MAX_DELAY);
-
 
     /* USER CODE END WHILE */
 
@@ -158,22 +159,22 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage
-  */
+   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -184,9 +185,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
@@ -199,10 +199,10 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief I2C1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief I2C1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_I2C1_Init(void)
 {
 
@@ -229,14 +229,13 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
-
 }
 
 /**
-  * @brief I2C2 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief I2C2 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_I2C2_Init(void)
 {
 
@@ -263,14 +262,13 @@ static void MX_I2C2_Init(void)
   /* USER CODE BEGIN I2C2_Init 2 */
 
   /* USER CODE END I2C2_Init 2 */
-
 }
 
 /**
-  * @brief USART1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief USART1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_USART1_UART_Init(void)
 {
 
@@ -296,54 +294,52 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
-
 }
 
 /**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief GPIO Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+  /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, motor_sleep_R_Pin|motor_dir_R_Pin|motor_step_R_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, motor_sleep_R_Pin | motor_dir_R_Pin | motor_step_R_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, motor_step_L_Pin|motor_sleep_L_Pin|motor_dir_L_Pin|GPO_Pin
-                          |DIR_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, motor_step_L_Pin | motor_sleep_L_Pin | motor_dir_L_Pin | GPO_Pin | DIR_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : motor_sleep_R_Pin motor_dir_R_Pin motor_step_R_Pin */
-  GPIO_InitStruct.Pin = motor_sleep_R_Pin|motor_dir_R_Pin|motor_step_R_Pin;
+  GPIO_InitStruct.Pin = motor_sleep_R_Pin | motor_dir_R_Pin | motor_step_R_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : motor_step_L_Pin motor_sleep_L_Pin motor_dir_L_Pin */
-  GPIO_InitStruct.Pin = motor_step_L_Pin|motor_sleep_L_Pin|motor_dir_L_Pin;
+  GPIO_InitStruct.Pin = motor_step_L_Pin | motor_sleep_L_Pin | motor_dir_L_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : GPO_Pin DIR_Pin */
-  GPIO_InitStruct.Pin = GPO_Pin|DIR_Pin;
+  GPIO_InitStruct.Pin = GPO_Pin | DIR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -351,9 +347,9 @@ static void MX_GPIO_Init(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -365,14 +361,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */

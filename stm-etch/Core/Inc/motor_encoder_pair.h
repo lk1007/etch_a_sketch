@@ -7,10 +7,12 @@
 
 typedef struct
 {
-    encoder_t* encoder;
-    motor_t* motor;
+    encoder_t *encoder;
+    motor_t *motor;
 } motor_encoder_pair_t;
 
-void motor_encoder_pair_init (motor_encoder_pair_t *motor_encoder_pair);
+void init_motor_encoder_pair(motor_encoder_pair_t *motor_encoder_pair);
+
+void step_motor_encoder_pair(motor_encoder_pair_t *motor_encoder_pair, uint16_t target_ticks);
 
 #endif

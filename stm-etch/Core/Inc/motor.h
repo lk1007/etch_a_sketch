@@ -6,6 +6,11 @@
 
 #define STEPS_PER_REV 200
 
+typedef enum{
+    CCW,
+    CW,
+} dir_t;
+
 typedef struct
 {
     GPIO_TypeDef *dir_port;
@@ -14,13 +19,9 @@ typedef struct
     uint16_t step_pin;
     GPIO_TypeDef *sleep_port;
     uint16_t sleep_pin;
+    dir_t positive_dir;
 } motor_t;
 
-typedef enum
-{
-    CCW,
-    CW,
-} dir_t;
 
 void motor_init(motor_t *motor);
 
