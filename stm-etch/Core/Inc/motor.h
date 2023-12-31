@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include "stm32f4xx_hal.h"
 
-#define MAX_ANGLE_VAL 4096
 #define STEPS_PER_REV 200
 
 typedef struct
@@ -17,7 +16,13 @@ typedef struct
     uint16_t sleep_pin;
 } motor_t;
 
-void motor_init(motor_t* motor);
+typedef enum
+{
+    CCW,
+    CW,
+} dir_t;
+
+void motor_init(motor_t *motor);
 
 void step_motor(motor_t *motor, uint8_t dir);
 

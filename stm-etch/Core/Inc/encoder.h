@@ -4,15 +4,22 @@
 #include "stm32f4xx_hal.h"
 #include <stdint.h>
 
-#define MAX_ANGLE_VAL 4096
+#define TICKS_PER_REV 4096
 
-typedef struct {
-    I2C_HandleTypeDef* hi2c;
+typedef struct
+{
+    I2C_HandleTypeDef *hi2c;
     uint8_t address;
-    float prev_angle;
+    uint16_t curr_angle;
+    uint8_t curr_revs;
+    uint16_t init_angle;
 } encoder_t;
 
-void encoder_init(encoder_t* encoder);
-uint16_t read_angle(encoder_t* encoder);
+
+
+uint16_t get_curr_angle(encoder_t *encoder);
+HAL_StatusTypeDef read_angle(encoder_t *encoder, uint16_t *angle);
+void encoder_init(encoder_t *encoder);
+void update_angle(encoder_t *encoder);
 
 #endif

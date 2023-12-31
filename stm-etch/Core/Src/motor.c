@@ -7,8 +7,12 @@ void motor_init(motor_t *motor)
     HAL_GPIO_WritePin(motor->sleep_port, motor->sleep_pin, 1);
 }
 
-void step_motor(motor_t *motor, uint8_t dir)
+void step_motor(motor_t *motor, dir_t dir)
 {
     HAL_GPIO_WritePin(motor->dir_port, motor->dir_pin, dir);
     HAL_GPIO_TogglePin(motor->step_port, motor->step_pin);
+}
+
+void motor_deactivate(motor_t *motor){
+    HAL_GPIO_WritePin(motor->sleep_port, motor->sleep_pin, 0);
 }

@@ -23,7 +23,9 @@
 /* USER CODE BEGIN Includes */
 #include "encoder.h"
 #include "motor.h"
+#include "stdio.h"
 /* USER CODE END Includes */
+
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
@@ -74,6 +76,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
   encoder_t encoder_L = {.address = 0x36,.hi2c = &hi2c1};
   encoder_t encoder_R = {.address = 0x36, .hi2c = &hi2c2};
+
   motor_t motor_L = {
       .step_port = motor_step_L_GPIO_Port,
       .dir_port = motor_dir_L_GPIO_Port,
@@ -114,6 +117,8 @@ int main(void)
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
   encoder_init(&encoder_L);
+  encoder_init(&encoder_R);
+
   motor_init(&motor_L);
   motor_init(&motor_R);
   int steps = 0;
@@ -125,23 +130,24 @@ int main(void)
   while (1)
   {
 
-    if(steps > 400)
+    if(steps > 200)
       dir = 0;
     else if(steps < 0)
       dir = 1;
     steps += (dir) ? 1 : -1;
-    HAL_GPIO_WritePin(motor_dir_L_GPIO_Port,motor_dir_L_Pin,dir);
-    HAL_GPIO_TogglePin(motor_step_L_GPIO_Port,motor_step_L_Pin);
-    HAL_GPIO_WritePin(motor_dir_R_GPIO_Port,motor_dir_R_Pin,dir);
-    HAL_GPIO_TogglePin(motor_step_R_GPIO_Port,motor_step_R_Pin);
-    HAL_Delay(10);
+    step_motor(&motor_L,dir);
+    step_motor(&motor_R,dir);
+    HAL_Delay(1);
 
-    uint16_t angle_L = read_angle(&encoder_L);
-    uint16_t angle_R = read_angle(&encoder_R);
+    update_angle(&encoder_L);
+    update_angle(&encoder_R);
+
+    uint16_t angle_L = get_curr_angle(&encoder_L);
+    uint16_t angle_R = get_curr_angle(&encoder_R);
 
     char str[20] = {0};
     int data_stored = sprintf(str, "Angle: %d %d\n", angle_L, angle_R);
-    HAL_UART_Transmit(&huart1, str, data_stored + 1, HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart1, (uint8_t *)str, data_stored + 1, HAL_MAX_DELAY);
 
 
     /* USER CODE END WHILE */

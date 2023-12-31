@@ -3,7 +3,6 @@
 #include "main.h"
 #include "encoder.h"
 
-
 #define RAW_ANGLE_UPPER 0x0C
 #define RAW_ANGLE_LOWER 0x0D
 
@@ -12,46 +11,69 @@
 
 void encoder_init(encoder_t *encoder)
 {
-  uint16_t angle = read_angle(encoder);
-  uint8_t angle_upper = (angle >> 8) && 0xFF;
-  uint8_t angle_lower = angle && 0xFF;
 
-  HAL_I2C_Mem_Write(encoder->hi2c, encoder->address << 1, ZPOS_UPPER, I2C_MEMADD_SIZE_8BIT, &angle_upper, 1, HAL_MAX_DELAY);
-  HAL_I2C_Mem_Write(encoder->hi2c, encoder->address << 1, ZPOS_LOWER, I2C_MEMADD_SIZE_8BIT, &angle_lower, 1, HAL_MAX_DELAY);
-  HAL_Delay(1);
+  encoder->init_angle = 0;
+  encoder->curr_angle = 0;
+  uint16_t init_angle;
+  HAL_StatusTypeDef ret = HAL_ERROR;
+  while (ret != HAL_OK)
+  {
+    ret = read_angle(encoder, &init_angle);
+  }
+  encoder->init_angle = init_angle;
+  encoder->curr_angle = init_angle;
+  encoder->curr_revs = 0;
 }
 
-uint8_t I2C_ReadRegister(encoder_t *encoder, uint8_t regAddr, uint8_t *ret_num)
+HAL_StatusTypeDef I2C_ReadRegister(encoder_t *encoder, uint8_t regAddr, uint8_t *ret_num)
 {
 
   // Start the I2C communication
-  HAL_StatusTypeDef ret2 = HAL_I2C_Master_Transmit(encoder->hi2c, encoder->address << 1, &regAddr, 1, HAL_MAX_DELAY);
-  // if(ret2 != HAL_OK){
-  //   return ret2;
-  // }
+  HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(encoder->hi2c, encoder->address << 1, &regAddr, 1, HAL_MAX_DELAY);
+  if(ret != HAL_OK){
+    return ret;
+  }
 
   // Receive data from the specified register
-  ret2 = HAL_I2C_Master_Receive(encoder->hi2c, encoder->address << 1, ret_num, 1, HAL_MAX_DELAY);
-
-  return ret2;
+  ret = HAL_I2C_Master_Receive(encoder->hi2c, encoder->address << 1, ret_num, 1, HAL_MAX_DELAY);
+  return ret;
 }
 
-// reads angle from encoder at i2c address
-uint16_t read_angle(encoder_t *encoder)
+HAL_StatusTypeDef read_angle(encoder_t *encoder, uint16_t *angle)
 {
 
-  uint8_t num1;
-  uint8_t num2;
+  uint8_t angle_upper;
+  uint8_t angle_lower;
   HAL_StatusTypeDef ret;
-  ret = I2C_ReadRegister(encoder, 0x0C, &num1);
-  // if(ret != HAL_OK){
-  //   num1 = 0xFF;
-  // }
+  ret = I2C_ReadRegister(encoder, RAW_ANGLE_UPPER, &angle_upper);
 
-  ret = I2C_ReadRegister(encoder, 0x0D, &num2);
-  // if(ret != HAL_OK){
-  //   num2 = 0xFF;
-  // }
+  ret = ret | I2C_ReadRegister(encoder, RAW_ANGLE_LOWER, &angle_lower);
 
-  return (num1 << 8) | num2;
+  *angle = (angle_upper << 8) | angle_lower;
+  return ret;
+}
+
+uint16_t get_curr_angle(encoder_t *encoder)
+{
+  return encoder->curr_revs * TICKS_PER_REV + encoder->curr_angle;
+}
+// reads angle from encoder at i2c address
+void update_angle(encoder_t *encoder)
+{
+  uint16_t angle;
+  HAL_StatusTypeDef ret = read_angle(encoder, &angle);
+  if(ret != HAL_OK){
+    return;
+  }
+
+  if ((encoder->curr_angle < (TICKS_PER_REV / 8)) && (angle > 7 * TICKS_PER_REV / 8))
+  {
+    encoder->curr_revs -= 1;
+  }
+  else if ((encoder->curr_angle > 6 * TICKS_PER_REV / 8) && (angle < (TICKS_PER_REV / 8)))
+  {
+    encoder->curr_revs += 1;
+  }
+  encoder->curr_angle = angle;
+
 }
