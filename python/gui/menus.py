@@ -1,6 +1,6 @@
 from collections import deque
 import os
-import path
+import path as path
 import gui.simulator as simulator
 import gui.button as button
 import gui.draw as draw

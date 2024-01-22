@@ -17,7 +17,7 @@ try:
   from pygame.locals import *   # for event MOUSE variables 
   import gui.button as button
   import gui.menus as menus
-  import git
+  # import git
   import time
   import threading
   print("stuff")
@@ -41,14 +41,15 @@ try:
   menu = menus.Menu(md)
   #Start menu
   x = button.Button((10,10), (40,40), "Exit", graceful_exit, None, my_font) 
-  repo = git.Git("./../")
+  # repo = git.Git("./../")
 
   def message(text):
     menus.Message(text, menu, my_font)
 
   def pull():
     try:
-      m = repo.pull()
+      # m = repo.pull()
+      m = "Git not implemented."
       message(m)
     except Exception as e:
       message(str(e))
